@@ -1,7 +1,7 @@
 [general]
 name: MapBiomas Collection
 description: This plugin enables the acquisition of land's use and coverage maps from MapBiomas Project (http://mapbiomas.org/) as a WMS layer.
-about:This plugin adds Mapbiomas annual land's use and coverage maps a WMS layer.
+about: This plugin adds Mapbiomas annual land's use and coverage maps as a WMS layer.
       The plugin is developed in collaboration with Solved[1]
       [1] https://solved.eco.br
 
@@ -15,9 +15,9 @@ category:Web
 
 tags:MapBiomas,Solved
 
-homepage:https://github.com/lmotta/mapbiomascollection/wiki
-tracker:https://github.com/lmotta/mapbiomascollection/issues
-repository:https://github.com/lmotta/mapbiomascollection
+homepage:https://github.com/mariochermes/mapbiomascollection/wiki
+tracker:https://github.com/mariochermes/mapbiomascollection/issues
+repository:https://github.com/mariochermes/mapbiomascollection
 
 icon:mapbiomas.svg
 

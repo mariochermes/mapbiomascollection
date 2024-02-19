@@ -13,7 +13,7 @@
 
 # MapBiomas Collection Plugin QGIS
 
-This plugin lets you get collection of mapping from MapBiomas Project.
+This plugin enables the acquisition of land's use and coverage maps from MapBiomas Project (http://mapbiomas.org/).
 
 ## Author
 Luiz Motta, Luiz Cortinhas, Mário Hermes
