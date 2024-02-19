@@ -8,7 +8,7 @@ about: This plugin adds Mapbiomas annual land's use and coverage maps as a WMS l
 version:1.5
 qgisMinimumVersion:3.10
 
-author:Luiz Motta Luiz Cortinhas and Mário Hermes
+author:Luiz Motta,Luiz Cortinhas and Mário Hermes
 email:motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mariochermes@gmail.com
 
 category:Web
