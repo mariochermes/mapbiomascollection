@@ -16,10 +16,13 @@
 This plugin lets you get collection of mapping from MapBiomas Project.
 
 ## Author
-Luiz Motta, Luiz Cortinhas
+Luiz Motta, Luiz Cortinhas, Mário Hermes
 
 
 ## Changelog
+- 2024-02-16
+Updated the plugin and JSON to consider all collections
+Added the initiatives: Amazon, Bolivia, Atlantic Forest, Chaco, Colombia, Ecuador, Indonesia, Pampa, Peru, Venezuela and Uruguay with the their most updated colletions
 - 2021-11-19
 Enhanced WMS loading performance
 Updated to Collection 6.0
