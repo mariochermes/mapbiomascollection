@@ -2,10 +2,10 @@
 """
 /***************************************************************************
 Name                 : MapBiomas Collection
-Description          : This plugin lets you get collection of mapping from MapBiomas Project(http://mapbiomas.org/).
-Date                 : November, 2021
-copyright            : (C) 2019 by Luiz Motta, Updated by Luiz Cortinhas (2020)
-email                : motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br
+Description          : This plugin enables the acquisition of use and coverage maps from MapBiomas Project (http://mapbiomas.org/).
+Date                 : February, 2024
+copyright            : (C) 2019 by Luiz Motta, Updated by Luiz Cortinhas (2020) and Mário Hermes (2024)
+email                : motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mariochermes@gmail.com
 
  ***************************************************************************/
 
@@ -41,65 +41,92 @@ from qgis.PyQt.QtGui import (
 from qgis.core import (
     QgsApplication, Qgis, QgsProject,
     QgsRasterLayer,
-    QgsTask
+    QgsTask,
+    QgsDataSourceUri
 )
 from qgis.gui import QgsGui, QgsMessageBar, QgsLayerTreeEmbeddedWidgetProvider
 
 class MapBiomasCollectionWidget(QWidget):
-    classRef = ''
+    legend_codes = {}
+    first_level_classes_list = {}
+    year = 2022
+    
     @staticmethod
-    def getParentColor(item):
+    def getParentColor(item, legend_code, id):
         if item['parent'] == '0' and item['status'] == False:
             return 'FFFFFF'
         if item['status']:
             return item['color']
         else:
-            return MapBiomasCollectionWidget.getParentColor(MapBiomasCollectionWidget.classRef[item['parent']])
+            return MapBiomasCollectionWidget.getParentColor(MapBiomasCollectionWidget.legend_codes[legend_code]['classParents'][item['parent']], legend_code, item['parent'])
 
     @staticmethod
-    def getUrl(url, version, year, l_class_id,classRef):
-        MapBiomasCollectionWidget.classRef = classRef
-        l_strClass = [ str(item) for item in l_class_id ]
-        for item in MapBiomasCollectionWidget.classRef.keys():
-            MapBiomasCollectionWidget.classRef[item]['status'] = False
-        for item in l_strClass:
-            MapBiomasCollectionWidget.classRef[item]['status'] = True
-        #ENV Percorredor!
-        env = 'env='
-        for item in MapBiomasCollectionWidget.classRef.keys():
-            classID = item
-            classID_opacity = str(classID)+'_o'
-            opacity = '1'
-            color = MapBiomasCollectionWidget.getParentColor(MapBiomasCollectionWidget.classRef[item])
-            if color == 'FFFFFF':
-                opacity = '0'
-            env = env + f'{classID}:{color};{classID_opacity}:{opacity};'
-        params = {
-            'IgnoreGetFeatureInfoUrl': '1',
-            'IgnoreGetMapUrl': '1',
-            'service': 'WMS',
-            'styles': 'solved:mapbiomas_legend',
-            'request': 'GetMap',
-            'format': 'image/png', # image/png8
-            'layers': 'mapbiomas_'+str(year),
-            'crs': 'EPSG:4326',
-            # 'stepHeight':'256',
-            # 'stepWidth':'256',
-            # 'maxHeight':'256',
-            # 'maxWidth':'256',
-            # 'dpiMode':'7',
-            # 'featureCount':'10'
-        }
-       
-        paramsWms = '&'.join( [ f"{k}={v}" for k,v in params.items() ] )
-        paramsQuote = f""
-        paramsQuote = f"{paramsQuote}&transparent=true&tiled=true&version=1.1.1&crs=EPSG:4326&LAYERS=mapbiomas_"+str(year)
-        paramsQuote = urllib.parse.quote( f"{paramsQuote}&exceptions=application/vnd.ogc.se_inimage&years={year}&{env}&classification_ids=" )# a ordem importa
-        paramClassification = ','.join( l_strClass )
-        msg = f"{paramsWms}&url={url}?{paramsQuote}{paramClassification}"
-        return f"{paramsWms}&url={url}?{paramsQuote}{paramClassification}"
+    def getUrl(url, legend_codes, first_level_classes_list, year):
+        MapBiomasCollectionWidget.legend_codes = legend_codes
+        MapBiomasCollectionWidget.first_level_classes_list = first_level_classes_list
+        MapBiomasCollectionWidget.year = year
+        
+        geoserver_layers = []
+        geoserver_styles = []
+        env = ''
+                
+        for k, v in legend_codes.items():
+            if year not in range(v['metadata']['years']['min'], v['metadata']['years']['max'] + 1):
+                print(f"Selected year for {k} not available")
+                continue
+            
+            style_name = f"solved:mapbiomas_{k.lower().replace(' ', '_')}_legend"
+            layer_name = f"mapbiomas_{k.lower().replace(' ', '_')}_{str(year)}"
+            geoserver_styles.append(style_name)
+            geoserver_layers.append(layer_name)
 
-    def __init__(self, layer, data):
+            for item in v['classParents'].keys():
+                MapBiomasCollectionWidget.legend_codes[k]['classParents'][item]['status'] = False
+
+            for k2, v2 in first_level_classes_list.items():
+                for item in v2:
+                    if item in MapBiomasCollectionWidget.legend_codes[k2]['classParents']:
+                        MapBiomasCollectionWidget.legend_codes[k2]['classParents'][item]['status'] = True
+                        
+            for item in v['classParents'].keys():
+                class_id = f"{k.lower().replace(' ', '_')}_{item}"
+                classID_opacity = class_id + '_o'
+                opacity = '1'
+                color = MapBiomasCollectionWidget.getParentColor(MapBiomasCollectionWidget.legend_codes[k]['classParents'][item], k, item)
+                if color == 'FFFFFF':
+                    opacity = '0'
+                env += f'{class_id}:{color};{classID_opacity}:{opacity};'
+
+        xMin, yMin, xMax, yMax = -180, -90, 180, 90  # Example global extent
+        params = dict(
+            IgnoreGetFeatureInfoUrl = 1,
+            IgnoreGetMapUrl = 1,
+            service = 'WMS',
+            version = '1.1.1',
+            request = 'GetMap',
+            layers = ','.join(geoserver_layers),
+            styles = ','.join(geoserver_styles),
+            bbox = f"{xMin},{yMin},{xMax},{yMax}",
+            width = '1024',
+            height = '768',
+            crs = 'EPSG:4326',
+            format = 'image/png',
+            transparent = 'TRUE',
+            url = 'http://azure.solved.eco.br:8080/geoserver/solved/wms'
+        )
+
+        layers_param = "&".join([f"layers={layer}" for layer in geoserver_layers])
+        styles_param = "&".join([f"styles={style}" for style in geoserver_styles])
+        wms_params = '&'.join([f"{k}={v}" for k, v in params.items()])
+
+        parsed_params = urllib.parse.quote(f"&transparent=true&tiled=true&version=1.1.1&crs=EPSG:4326&LAYERS={','.join(geoserver_layers)}&exceptions=application/vnd.ogc.se_inimage&env={env}")
+
+        wms_url = f"IgnoreGetFeatureInfoUrl=1&IgnoreGetMapUrl=1&service=WMS&{styles_param}&request=GetMap&format=image/png&{layers_param}&crs=EPSG:4326&url=http://azure.solved.eco.br:8080/geoserver/solved/wms?{parsed_params}"
+        
+        return wms_url
+    
+
+    def __init__(self, layer, metadata, legend_codes):
         def getYearClasses():
             def getYear():
                 values = [ item for item in paramsSource if item.find('years=') > -1]
@@ -111,11 +138,10 @@ class MapBiomasCollectionWidget(QWidget):
                     return [] 
                 else :
                     return [ int( item ) for item in values[0].split('=')[1].split(',') ]
-
             paramsSource = urllib.parse.unquote( self.layer.source() ).split('&')
             return getYear(), getClasses()
 
-        def setGui(classes):
+        def setGui(legend_codes):
             def createLayoutYear():
                 lytYear = QHBoxLayout()
                 lblTitleYear = QLabel( 'Year:', self )
@@ -155,8 +181,8 @@ class MapBiomasCollectionWidget(QWidget):
                 lytSlider.addWidget( pbMax )
                 return lytSlider, slider, pbMin, pbMax
 
-            def createTree(classes):
-                def populateTreeJson(classes, itemRoot):
+            def createTree(legend_codes):
+                def populateTreeJson(classes, itemRoot, first_level_classes):
                     def createIcon(color):
                         color = QColor( color['r'], color['g'], color['b'] )
                         pix = QPixmap(16, 16)
@@ -168,7 +194,7 @@ class MapBiomasCollectionWidget(QWidget):
                         item = QTreeWidgetItem( itemRoot )
                         item.setText(0, name )
                         item.setData(0, Qt.UserRole, class_id )
-                        checkState = Qt.Checked if class_id in self.l_class_id else Qt.Unchecked
+                        checkState = Qt.Checked if str(class_id) in first_level_classes else Qt.Unchecked
                         item.setCheckState(0, checkState )
                         item.setFlags( flags )
                         item.setIcon(0, icon )
@@ -180,19 +206,23 @@ class MapBiomasCollectionWidget(QWidget):
                         icon = createIcon( classes[ k ]['color'] )
                         itemClass = createItem( itemRoot, k, class_id, flags, icon )
                         if 'classes' in classes[ k ]:
-                            populateTreeJson( classes[ k ]['classes'], itemClass )
+                            populateTreeJson( classes[ k ]['classes'], itemClass, first_level_classes )
 
                 tree = QTreeWidget( self )
                 tree.setSelectionMode( tree.NoSelection )
                 tree.setHeaderHidden( True )
                 itemRoot = QTreeWidgetItem( tree )
-                itemRoot.setText(0, 'Classes')
-                populateTreeJson( classes, itemRoot )
+                itemRoot.setText(0, 'Initiative')
+                for legend_code in legend_codes:
+                    legend_code_node = QTreeWidgetItem( itemRoot )
+                    legend_code_node.setText(0, legend_code)
+                    populateTreeJson( legend_codes[legend_code]['classes'], legend_code_node, self.first_level_classes_list[legend_code] )
+                    
                 return tree, itemRoot
 
             lytYear, lblYear  = createLayoutYear()
             lytSlider, slider, pbMin, pbMax = createLayoutSlider( )
-            tree, itemClasses = createTree( classes )
+            tree, itemClasses = createTree( legend_codes )
             itemClasses.setExpanded( True )
             # Layout
             lyt = QVBoxLayout()
@@ -202,7 +232,6 @@ class MapBiomasCollectionWidget(QWidget):
             msgBar = QgsMessageBar(self)
             lyt.addWidget( msgBar )
             self.setLayout( lyt )
-
 
             return {
                 'msgBar': msgBar,
@@ -216,18 +245,20 @@ class MapBiomasCollectionWidget(QWidget):
 
         super().__init__()
         self.layer = layer
-        self.version = data['version']
-        self.url = data['url']
-        self.minYear = data['years']['min']
-        self.maxYear = data['years']['max']
+        
+        self.version = metadata['version']
+        self.url = metadata['url']
+        self.minYear = metadata['years']['min']
+        self.maxYear = metadata['years']['max']
 
         self.project = QgsProject.instance()
         self.root = self.project.layerTreeRoot()
 
-        self.year, self.l_class_id = getYearClasses() # Depend self.maxYear
+        # self.year, self.l_class_id = getYearClasses() # Depend self.maxYear
+                
         self.valueYearLayer = self.year
 
-        r = setGui( data['classes'] )
+        r = setGui( legend_codes )
         self.msgBar = r['msgBar']
         self.lblYear = r['lblYear']
         self.slider = r['slider']
@@ -245,8 +276,8 @@ class MapBiomasCollectionWidget(QWidget):
 
     def _uploadSource(self):
         def checkDataSource():
-            url = self.getUrl( self.url, self.version, self.year, self.l_class_id, MapBiomasCollectionWidget.classRef )
-            name = f"Collection {self.version} - {self.year}"
+            url = self.getUrl( self.url, self.legend_codes, self.first_level_classes_list, self.year )
+            name = f"Mapbiomas Collection - {self.year}"
             args = [ url, name, self.layer.providerType() ]
             layer = QgsRasterLayer( *args )
             if not layer.isValid():
@@ -295,18 +326,30 @@ class MapBiomasCollectionWidget(QWidget):
 
     @pyqtSlot(QTreeWidgetItem, int)
     def on_classChanged(self, item, column):
+        def getTreeRootItemText(item):
+            current_item = item
+            # Traverse up until we find 'Initiative' or reach a top-level item
+            while current_item.parent() is not None:
+                if current_item.parent().text(0) == 'Initiative':
+                    return current_item.text(0)  # Return the current item if its parent's text is 'Initiative'
+                current_item = current_item.parent()
+            return None  # Return None if 'Initiative' is not found in the hierarchy
+
         value = item.data( column, Qt.UserRole)
         color = item.data( column, Qt.UserRole)
         status = item.checkState( column ) == Qt.Checked
-        f = self.l_class_id.append if status else self.l_class_id.remove
-        f( value )
+        parent_legend_code = getTreeRootItemText(item)
+        f = self.first_level_classes_list[parent_legend_code].append if status else self.first_level_classes_list[parent_legend_code].remove
+        f( str(value) )
+    
         self._uploadSource()
 
 
 class LayerMapBiomasCollectionWidgetProvider(QgsLayerTreeEmbeddedWidgetProvider):
-    def __init__(self, data):
+    def __init__(self, metadata, legend_codes):
         super().__init__()
-        self.data = data
+        self.metadata = metadata
+        self.legend_codes = legend_codes
 
     def id(self):
         return 'mapbiomascollection'
@@ -315,39 +358,45 @@ class LayerMapBiomasCollectionWidgetProvider(QgsLayerTreeEmbeddedWidgetProvider)
         return "Layer MapBiomas Collection"
 
     def createWidget(self, layer, widgetIndex):
-        return MapBiomasCollectionWidget( layer, self.data )
+        return MapBiomasCollectionWidget( layer, self.metadata, self.legend_codes )
 
     def supportsLayer(self, layer):
         if not layer.providerType() == 'wms':
             return False
         source = urllib.parse.unquote( layer.source() ).split('&')
-        host = f"url={self.data['url']}?map=wms/v/{self.data['version']}/classification/coverage.map"
+        host = f"url={self.metadata['url']}?map=wms/v/{self.metadata['version']}/classification/coverage.map"
         l_url = [ item for item in source if item.find( host ) > -1 ]
         return len( l_url ) > 0
-
 
 class MapBiomasCollection(QObject):
     MODULE = 'MapBiomasCollection'
     def __init__(self, iface):
         def getConfig():
             def readUrlJson(locale):
-                f_name = 'http://azure.solved.eco.br:90/mapbiomascollection_{locale}.json'
+                f_name = f"http://azure.solved.eco.br:90/mapbiomascollection_{locale}.json"
+                print('f_name',f_name)
                 isOk = True
                 try:
                     name = f_name.format( locale=locale )
                     with urllib.request.urlopen(name) as url:
                         data = json.loads( url.read().decode() )
-                except:
+                        print('data', data)
+                    # name = f_name
+                    # with open(name, 'r') as file:
+                    #     data = json.load(file)
+                except Exception as e:
+                    print("Error:", e)
                     isOk = False
                 
                 r = { 'isOk': isOk }
                 ( key, value ) = ( 'data', data )  if isOk else ( 'message', f"Missing file '{name}'" )
                 r[ key ] = value
+                
                 return r
 
             overrideLocale = QSettings().value('locale/overrideFlag', False, type=bool)
             locale = QLocale.system().name() if not overrideLocale else QSettings().value('locale/userLocale', '')
-            r = readUrlJson( locale )
+            r = readUrlJson('en_US')
             if r['isOk']:
                 return r['data']
 
@@ -361,6 +410,12 @@ class MapBiomasCollection(QObject):
 
             self.messageError = r['message']
             return None
+        
+        def setInitialFirstLevelClasses(legend_codes):
+            # class_references = {k: v['classParents'] for k, v in legend_codes.items()}
+            first_level_classes_list = {k: list(v['firstLevelClasses'].keys()) for k, v in legend_codes.items()}
+            
+            return first_level_classes_list
 
         super().__init__()        
         self.msgBar = iface.messageBar()
@@ -368,20 +423,23 @@ class MapBiomasCollection(QObject):
         self.taskManager = QgsApplication.taskManager()
         self.messageError = ''
         self.data = getConfig() # If error, return None and set self.messageError
+        self.metadata = self.data['metadata']
+        self.legend_codes = self.data['legend_codes']
+        self.first_level_classes_list = setInitialFirstLevelClasses(self.legend_codes)
         self.widgetProvider = None
 
     def register(self):
-        self.widgetProvider = LayerMapBiomasCollectionWidgetProvider( self.data )
+        self.widgetProvider = LayerMapBiomasCollectionWidgetProvider(self.metadata, self.legend_codes)
         registry = QgsGui.layerTreeEmbeddedWidgetRegistry()
         if not registry.provider( self.widgetProvider.id() ) is None:
             registry.removeProvider( self.widgetProvider.id() )
         registry.addProvider( self.widgetProvider )
 
     def run(self):
-        def createLayer(task, year, l_class_id):
-            args = (self.data['url'], self.data['version'], year, l_class_id, self.data['classParents'])
+        def createLayer(task, year):
+            args = (self.metadata['url'], self.legend_codes, self.first_level_classes_list, year)
             url = MapBiomasCollectionWidget.getUrl( *args )
-            return ( url, f"Collection {self.data['version']} - {year}", 'wms' )
+            return ( url, f"Mapbiomas Collection - {year}", 'wms' )
 
         def finished(exception, result=None):
             self.msgBar.clearWidgets()
@@ -389,8 +447,10 @@ class MapBiomasCollection(QObject):
                 msg = f"Error: Exception: {exception}"
                 self.msgBar.pushMessage( self.MODULE, msg, Qgis.Critical, 4 )
                 return
+
             layer = QgsRasterLayer( *result )
             if not layer.isValid():
+                print("error summary:", layer.error().summary())
                 source = urllib.parse.unquote( layer.source() ).split('&')
                 url = [ v for v in source if v.split('=')[0] == 'url' ][0]
                 msg = f"!!!Error server: Get {url}"
@@ -401,24 +461,24 @@ class MapBiomasCollection(QObject):
             totalEW = int( layer.customProperty('embeddedWidgets/count', 0) )
             layer.setCustomProperty('embeddedWidgets/count', totalEW + 1 )
             layer.setCustomProperty(f"embeddedWidgets/{totalEW}/id", self.widgetProvider.id() )
-            project.addMapLayer( layer )
+            project.addMapLayer(layer)
             root = project.layerTreeRoot()
             ltl = root.findLayer( layer )
             ltl.setExpanded(True)
+            return
 
-        if self.data is None:
+        if self.metadata is None:
             self.msgBar.pushMessage( self.MODULE, self.messageError, Qgis.Critical, 0 )
             return
-        
-        msg = f"Adding layer collection from {self.data['url']}"
-        msg = f"{msg}(version {self.data['version']})..."
+
+        msg = f"Adding layer collection from {self.metadata['url']}"
+        msg = f"{msg}(version {self.metadata['version']})..."
         self.msgBar.pushMessage( self.MODULE, msg, Qgis.Info, 0 )
         # Task
         args = {
             'description': self.MODULE,
             'function': createLayer,
-            'year': self.data['years']['max'],
-            'l_class_id': [1, 10, 14, 22, 26, 27],
+            'year': self.metadata['years']['max'],
             'on_finished': finished
         }
         task = QgsTask.fromFunction( **args )

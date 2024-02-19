@@ -2,7 +2,7 @@
 """
 /***************************************************************************
 Name                 : MapBiomas Collection
-Description          : This plugin lets you get collection of mapping from MapBiomas Project(http://mapbiomas.org/).
+Description          : This plugin enables the acquisition of use and coverage maps from MapBiomas Project (http://mapbiomas.org/).
 Date                 : August, 2020
 copyright            : (C) 2019 by Luiz Motta, Updated by Luiz Cortinhas (2020)
 email                : motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br
@@ -29,7 +29,7 @@ from qgis.PyQt.QtCore import QObject, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-from .mapbiomascollection import MapBiomasCollection
+from .mapbiomas_collection import MapBiomasCollection
 
 def classFactory(iface):
   return MapbiomasCollectionPlugin( iface )
