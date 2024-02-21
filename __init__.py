@@ -29,7 +29,7 @@ from qgis.PyQt.QtCore import QObject, pyqtSlot
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction
 
-from .mapbiomas_collection import MapBiomasCollection
+from .mapbiomascollection import MapBiomasCollection
 
 def classFactory(iface):
   return MapbiomasCollectionPlugin( iface )
