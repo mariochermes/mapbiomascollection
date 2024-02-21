@@ -8,7 +8,7 @@ about: This plugin integrates MapBiomas annual land use and coverage maps as a W
 version:1.5
 qgisMinimumVersion:3.10
 
-author:Luiz Motta,Luiz Cortinhas and Mário Hermes
+author:Luiz Motta, Luiz Cortinhas and Mário Hermes
 email:motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mariochermes@gmail.com
 
 category:Web
@@ -25,7 +25,7 @@ experimental:True
 deprecated:False
 
 changelog:1.5(2024-02-16)
-  Updated the plugin and JSON to consider all collections  
+  Updated the plugin and JSON to consider all collections
   Added the initiatives: Amazon, Bolivia, Atlantic Forest, Chaco, Colombia, Ecuador, Indonesia, Pampa, Peru, Venezuela and Uruguay with the their most updated colletions
   - 1.4(2021-11-19)
   Enhanced WMS loading performance
