@@ -24,7 +24,8 @@ icon:mapbiomas.svg
 experimental:True
 deprecated:False
 
-changelog:1.5(2024-02-16)
+changelog:- 1.5.1(2024-02-26): Introduce a new JSON path while ensuring the continued functioning of the old plugin.
+  - 1.5(2024-02-16)
   Updated the plugin and JSON to consider all collections
   Added the initiatives: Amazon, Bolivia, Atlantic Forest, Chaco, Colombia, Ecuador, Indonesia, Pampa, Peru, Venezuela and Uruguay with the their most updated colletions
   - 1.4(2021-11-19)
