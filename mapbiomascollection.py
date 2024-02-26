@@ -373,8 +373,7 @@ class MapBiomasCollection(QObject):
     def __init__(self, iface):
         def getConfig():
             def readUrlJson(locale):
-                f_name = f"http://azure.solved.eco.br:90/mapbiomascollection_{locale}.json"
-                print('f_name',f_name)
+                f_name = f"http://azure.solved.eco.br:90/mapbiomascollection_{locale}_updated.json"
                 isOk = True
                 try:
                     name = f_name.format( locale=locale )
@@ -394,19 +393,19 @@ class MapBiomasCollection(QObject):
                 
                 return r
 
-            overrideLocale = QSettings().value('locale/overrideFlag', False, type=bool)
-            locale = QLocale.system().name() if not overrideLocale else QSettings().value('locale/userLocale', '')
+            # overrideLocale = QSettings().value('locale/overrideFlag', False, type=bool)
+            # locale = QLocale.system().name() if not overrideLocale else QSettings().value('locale/userLocale', '')
             r = readUrlJson('en_US')
             if r['isOk']:
                 return r['data']
 
-            if not r['isOk'] and locale == 'en_US':
-                self.messageError = r['message']
-                return None
+            # if not r['isOk'] and locale == 'en_US':
+            #     self.messageError = r['message']
+            #     return None
 
-            r = readUrlJson('en_US')
-            if r['isOk']:
-                return r['data']
+            # r = readUrlJson('en_US')
+            # if r['isOk']:
+            #     return r['data']
 
             self.messageError = r['message']
             return None
