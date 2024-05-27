@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
 /***************************************************************************
-Name                 : MapBiomas Collection
+Name                 : MapBiomas Collection Official
 Description          : This plugin enables the acquisition of use and coverage maps from MapBiomas Project (http://mapbiomas.org/).
-Date                 : February, 2024
+Date                 : may, 2024
 copyright            : (C) 2019 by Luiz Motta, Updated by Luiz Cortinhas (2020) and Mário Hermes (2024)
-email                : motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mariochermes@gmail.com
+email                : contato@mapbiomas.org
 
  ***************************************************************************/
 
@@ -19,7 +19,7 @@ email                : motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mario
  ***************************************************************************/
 """
 __author__ = 'Luiz Cortinhas, Luiz Motta, Mário Hermes'
-__date__ = '2024-02-19'
+__date__ = '2024-05-27'
 __copyright__ = '(C) 2024, Luiz Cortinhas, Luiz Motta and Mário Hermes'
 __revision__ = '$Format:%H$'
 
@@ -38,11 +38,11 @@ class MapbiomasCollectionPlugin(QObject):
   def __init__(self, iface=None):
     super().__init__()
     self.iface = iface
-    self.name = u"&MapbiomasCollection"
+    self.name = u"&MapbiomasCollectionOfficial"
     self.mbc = MapBiomasCollection( iface )
 
   def initGui(self):
-    name = "Mapbiomas Collection"
+    name = "Mapbiomas Collection Official"
     about = 'Add a MapBiomas collection'
     icon = QIcon( os.path.join( os.path.dirname(__file__), 'mapbiomas.svg' ) )
     self.action = QAction( icon, name, self.iface.mainWindow() )

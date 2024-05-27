@@ -1,15 +1,15 @@
 [general]
-name: MapBiomas Collection
+name: MapBiomas Collection Official
 description: This plugin enables the acquisition of land's use and coverage maps from MapBiomas Project (http://mapbiomas.org/) as a WMS layer.
 about: This plugin integrates MapBiomas annual land use and coverage maps as a WMS layer.
       The plugin is developed in collaboration with Solved[1]
       [1] https://solved.eco.br
 
-version:1.5
+version:1.6
 qgisMinimumVersion:3.10
 
 author:Luiz Motta, Luiz Cortinhas and Mário Hermes
-email:motta.luiz@gmail.com, luiz.cortinhas@solved.eco.br, mariochermes@gmail.com
+email:contato@mapbiomas.org
 
 category:Web
 
@@ -21,10 +21,17 @@ repository:https://github.com/mariochermes/mapbiomascollection
 
 icon:mapbiomas.svg
 
-experimental:True
+experimental:False
 deprecated:False
 
-changelog:- 1.5.1(2024-02-26): Introduce a new JSON path while ensuring the continued functioning of the old plugin.
+changelog:
+  - 1.6(2024-27-05)
+  Added selection behavior to the initiatives
+  Block/fade non-available initiatives
+  Changes don't reset the expanded state of tree items
+  Updated all classes to the latest version 
+  - 1.5.1(2024-02-26) 
+  Introduced a new JSON path while ensuring the continued functioning of the old plugin.
   - 1.5(2024-02-16)
   Updated the plugin and JSON to consider all collections
   Added the initiatives: Amazon, Bolivia, Atlantic Forest, Chaco, Colombia, Ecuador, Indonesia, Pampa, Peru, Venezuela and Uruguay with the their most updated colletions

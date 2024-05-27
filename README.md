@@ -18,8 +18,12 @@ This plugin enables the acquisition of land's use and coverage maps from MapBiom
 ## Author
 Luiz Motta, Luiz Cortinhas, Mário Hermes
 
-
 ## Changelog
+- 2024-27-05
+Added selection behavior to the initiatives
+Block/fade non-available initiatives
+Changes don't reset the expanded state of tree items
+Updated all classes to the latest version 
 - 2024-02-16
 Updated the plugin and JSON to consider all collections  
 Added the initiatives: Amazon, Bolivia, Atlantic Forest, Chaco, Colombia, Ecuador, Indonesia, Pampa, Peru, Venezuela and Uruguay with the their most updated colletions
