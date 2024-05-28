@@ -74,8 +74,6 @@ class MapBiomasCollectionWidget(QWidget):
         env = ''
 
         for k, v in legend_codes.items():
-            if k == 'Chile' or k == 'Argentina':
-                continue
             if year not in range(v['metadata']['years']['min'], v['metadata']['years']['max'] + 1):
                 print(f"Selected year for {k} not available")
                 continue

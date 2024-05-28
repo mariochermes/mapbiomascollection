@@ -5,7 +5,7 @@ about: This plugin integrates MapBiomas annual land use and coverage maps as a W
       The plugin is developed in collaboration with Solved[1]
       [1] https://solved.eco.br
 
-version:1.6
+version:1.6.1
 qgisMinimumVersion:3.10
 
 author:Luiz Motta, Luiz Cortinhas and Mário Hermes
@@ -25,6 +25,8 @@ experimental:False
 deprecated:False
 
 changelog:
+  - 1.6.1(2024-27-06)
+  Added Argentina and Chile initiatives
   - 1.6(2024-27-05)
   Added selection behavior to the initiatives
   Block/fade non-available initiatives

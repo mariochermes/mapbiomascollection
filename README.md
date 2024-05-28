@@ -19,6 +19,8 @@ This plugin enables the acquisition of land's use and coverage maps from MapBiom
 Luiz Motta, Luiz Cortinhas, Mário Hermes
 
 ## Changelog
+- 2024-27-06
+Added Argentina and Chile initiatives
 - 2024-27-05
 Added selection behavior to the initiatives
 Block/fade non-available initiatives
